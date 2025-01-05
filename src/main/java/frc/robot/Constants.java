@@ -10,8 +10,9 @@ import frc.robot.Constants.InternalEnums.RobotStatus;
 /** Add your docs here. */
 public class Constants {
     public static class DesignConstants {
-        public final static double robotWidth = 0.5; // Robot Width in Meters
-        public final static double wheelRadius = Units.inchesToMeters(2); // Robot Wheel Radius in Inches
+        public static final double robotWidth = 0.5; // Robot Width in Meters
+        public static final double wheelRadius = Units.inchesToMeters(2); // Robot Wheel Radius in Inches
+        public static final double robotMass = 25.931539182;
     }
     public static class RobotConstants {
         public static RobotStatus currentStatus = RobotStatus.SIM;
