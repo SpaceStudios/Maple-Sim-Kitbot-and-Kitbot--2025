@@ -6,6 +6,8 @@ package frc.robot.subsystems.drivetrain.Commands;
 
 import java.util.function.DoubleSupplier;
 
+import org.opencv.core.Mat;
+
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.RobotConstants;
@@ -28,7 +30,7 @@ public class Drive extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    ChassisSpeeds setSpeeds = new ChassisSpeeds(Joystick1Y.getAsDouble()*RobotConstants.RobotMaxSpeed, 0.0, Joystick2X.getAsDouble()*RobotConstants.RobotMaxTurnSpeed);
+    ChassisSpeeds setSpeeds = new ChassisSpeeds(Joystick1Y.getAsDouble()*RobotConstants.RobotMaxSpeed, 0.0, Joystick2X.getAsDouble()*Math.PI);
     drivetrain.DriveBasedOnSpeeds(setSpeeds);
   }
 

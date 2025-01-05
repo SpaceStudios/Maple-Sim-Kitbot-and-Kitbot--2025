@@ -42,5 +42,6 @@ public class Drivetrain extends SubsystemBase {
   public void periodic() {
     io.updateInputs(data);
     Logger.processInputs("Drive Train", data);
+    Logger.recordOutput("Vision Pose Estimated", io.getPose());
   }
 }

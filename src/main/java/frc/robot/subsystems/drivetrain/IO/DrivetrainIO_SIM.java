@@ -4,13 +4,35 @@
 
 package frc.robot.subsystems.drivetrain.IO;
 
+import java.io.IOException;
+import java.util.Optional;
+
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
+
+import com.fasterxml.jackson.databind.node.POJONode;
+
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DesignConstants;
 import frc.robot.subsystems.drivetrain.DrivetrainIO;
 import frc.robot.subsystems.drivetrain.driveDataAutoLogged;
@@ -22,6 +44,10 @@ public class DrivetrainIO_SIM implements DrivetrainIO {
     public DifferentialDrivetrainSim simRobot;
     DriveTrainSimulationConfig driveSimConfig;
     SwerveDriveSimulation driveSim;
+    VisionSystemSim visionSim;
+    PhotonPoseEstimator poseEstimator;
+    Pose2d previousPose;
+    PhotonCameraSim cam1Sim;
 
     public DrivetrainIO_SIM() {
         leftPid = new PIDController(0.9, 0, 0);
@@ -33,7 +59,31 @@ public class DrivetrainIO_SIM implements DrivetrainIO {
             DesignConstants.robotMass,
             DesignConstants.wheelRadius,
             DesignConstants.robotWidth,
-            null);
+            null
+        );
+        // Vision
+        visionSim = new VisionSystemSim("vision");
+        AprilTagFieldLayout fieldTags = null;
+        try {
+            fieldTags = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
+            visionSim.addAprilTags(fieldTags);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        SimCameraProperties cameraProperties = new SimCameraProperties();
+        cameraProperties.setCalibration(640, 480, Rotation2d.fromDegrees(70));
+        cameraProperties.setCalibError(0.25, 0.08);
+        cameraProperties.setFPS(30);
+        cameraProperties.setAvgLatencyMs(35);
+        cameraProperties.setLatencyStdDevMs(5);
+        PhotonCamera cam1 = new PhotonCamera("camera1");
+        cam1Sim = new PhotonCameraSim(cam1, cameraProperties);
+        Translation3d cam1Pos = new Translation3d(0.1, 0, 0);
+        Rotation3d cam1Rot = new Rotation3d(0, Units.degreesToRadians(-15), 0);
+        Transform3d cam1Transform = new Transform3d(cam1Pos, cam1Rot);
+        visionSim.addCamera(cam1Sim, cam1Transform);
+        poseEstimator = new PhotonPoseEstimator(fieldTags, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, cam1Transform);
+        previousPose = new Pose2d();
     }
 
     @Override
@@ -62,15 +112,26 @@ public class DrivetrainIO_SIM implements DrivetrainIO {
         data.velocityRight = simRobot.getRightVelocityMetersPerSecond();
 
         data.currentPosition = simRobot.getPose();
+        visionSim.update(simRobot.getPose());
+
+        SmartDashboard.putData("Vision Sim Field", visionSim.getDebugField());
     }
 
     @Override
     public void setPose(Pose2d setPose) {
         simRobot.setPose(setPose);
+        previousPose = setPose;
     }
 
     @Override
     public Pose2d getPose() {
-        return simRobot.getPose();
+        poseEstimator.setReferencePose(previousPose);
+        Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(cam1Sim.getCamera().getLatestResult());
+        if (estimatedRobotPose.isPresent()) {
+            previousPose = estimatedRobotPose.get().estimatedPose.toPose2d();
+            return estimatedRobotPose.get().estimatedPose.toPose2d();
+        } else {
+            return previousPose;
+        }
     }
 }
