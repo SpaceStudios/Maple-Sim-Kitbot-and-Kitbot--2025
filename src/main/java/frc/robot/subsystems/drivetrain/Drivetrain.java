@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.drivetrain;
 
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -11,6 +12,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.RobotConstants;
+import frc.robot.subsystems.drivetrain.IO.DrivetrainIO_SIM;
 
 public class Drivetrain extends SubsystemBase {
   /** Creates a new Drivetrain. */
@@ -22,10 +24,10 @@ public class Drivetrain extends SubsystemBase {
     data = new driveDataAutoLogged();
     switch (RobotConstants.currentStatus) {
       case REAL:
-        
+
         break;
       case SIM:
-
+        io = new DrivetrainIO_SIM();
         break;
     }
   }
@@ -33,6 +35,7 @@ public class Drivetrain extends SubsystemBase {
   public void DriveBasedOnSpeeds(ChassisSpeeds speeds) {
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
     io.driveWheelSpeeds(wheelSpeeds);
+    Logger.recordOutput("Drive Train/Speeds", wheelSpeeds);
   }
 
   @Override

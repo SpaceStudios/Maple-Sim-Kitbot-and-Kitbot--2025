@@ -17,8 +17,11 @@ public class Drive extends Command {
   DoubleSupplier Joystick1Y;
   DoubleSupplier Joystick2X;
   Drivetrain drivetrain;
-  public Drive(DoubleSupplier Joystick1Y, DoubleSupplier Joystick2X, Drivetrain drivetrain) {
+  public Drive(DoubleSupplier joystick1Y, DoubleSupplier joystick2X, Drivetrain cDrivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
+    Joystick1Y = joystick1Y;
+    Joystick2X = joystick2X;
+    drivetrain = cDrivetrain;
     addRequirements(drivetrain);
   }
 

@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.drivetrain.IO;
 
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -16,13 +18,21 @@ import frc.robot.subsystems.drivetrain.driveDataAutoLogged;
 public class DrivetrainIO_SIM implements DrivetrainIO {
     PIDController leftPid;
     PIDController rightPid;
-    DifferentialDrivetrainSim simrig;
-    
+    public DifferentialDrivetrainSim simRobot;
+    DriveTrainSimulationConfig driveSimConfig;
+    SwerveDriveSimulation driveSim;
 
     public DrivetrainIO_SIM() {
         leftPid = new PIDController(0.9, 0, 0);
         rightPid = new PIDController(0.9, 0, 0);
-        simrig = new DifferentialDrivetrainSim(DCMotor.getNEO(2),1/8.46, 0.8946636991, DesignConstants.robotMass, DesignConstants.wheelRadius, DesignConstants.robotWidth, null);
+        simRobot = new DifferentialDrivetrainSim(
+            DCMotor.getNEO(2),
+            8.46,
+            0.8946636991,
+            DesignConstants.robotMass,
+            DesignConstants.wheelRadius,
+            DesignConstants.robotWidth,
+            null);
     }
 
     @Override
@@ -32,23 +42,25 @@ public class DrivetrainIO_SIM implements DrivetrainIO {
     }
 
     @Override
-    public void updateInputs(driveDataAutoLogged data) {        
-        double voltsLeft = leftPid.calculate(simrig.getLeftVelocityMetersPerSecond());
-        double voltsRight = rightPid.calculate(simrig.getRightVelocityMetersPerSecond());
-        simrig.setInputs(voltsLeft, voltsRight);
+    public void updateInputs(driveDataAutoLogged data) {  
+        simRobot.update(0.020);      
+        double voltsLeft = leftPid.calculate(simRobot.getLeftVelocityMetersPerSecond());
+        double voltsRight = rightPid.calculate(simRobot.getRightVelocityMetersPerSecond());
+        simRobot.setInputs(voltsLeft, voltsRight);
         
         // Getting Left Side Data
-        data.ampsLeft = simrig.getLeftCurrentDrawAmps();
+        data.ampsLeft = simRobot.getLeftCurrentDrawAmps();
         data.voltsLeft = voltsLeft;
-        data.positionLeft = simrig.getLeftPositionMeters();
-        data.velocityLeft = simrig.getLeftVelocityMetersPerSecond();
+        data.positionLeft = simRobot.getLeftPositionMeters();
+        data.velocityLeft = simRobot.getLeftVelocityMetersPerSecond();
 
         // Getting Right Side Data
-        data.ampsRight = simrig.getRightCurrentDrawAmps();
+        data.ampsRight = simRobot.getRightCurrentDrawAmps();
         data.voltsRight = voltsRight;
-        data.positionRight = simrig.getRightPositionMeters();
-        data.velocityRight = simrig.getRightVelocityMetersPerSecond();
-        data.currentPosition = simrig.getPose();
+        data.positionRight = simRobot.getRightPositionMeters();
+        data.velocityRight = simRobot.getRightVelocityMetersPerSecond();
+
+        data.currentPosition = simRobot.getPose();
     }
 
     @Override
