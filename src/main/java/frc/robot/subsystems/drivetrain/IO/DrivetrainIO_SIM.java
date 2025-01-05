@@ -7,6 +7,7 @@ package frc.robot.subsystems.drivetrain.IO;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
@@ -64,7 +65,12 @@ public class DrivetrainIO_SIM implements DrivetrainIO {
     }
 
     @Override
-    public void periodic() {
-        
+    public void setPose(Pose2d setPose) {
+        simRobot.setPose(setPose);
+    }
+
+    @Override
+    public Pose2d getPose() {
+        return simRobot.getPose();
     }
 }

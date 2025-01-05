@@ -25,5 +25,6 @@ public interface DrivetrainIO {
     }
     public abstract void driveWheelSpeeds(DifferentialDriveWheelSpeeds wheelSpeeds);
     public abstract void updateInputs(driveDataAutoLogged data);
-    public abstract void periodic();
+    public abstract void setPose(Pose2d setPose);
+    public abstract Pose2d getPose();
 }
